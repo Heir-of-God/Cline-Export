@@ -34,14 +34,26 @@ def classify(item):
         return "user", text
     if say_type == "reasoning":
         return "reasoning", text
-    if say_type == "text":
+    if say_type in ("text", "completion_result"):
         return "model", text
     if item.get("ask") == "plan_mode_respond":
         try:
             return "plan", json.loads(text).get("response", text)
         except (json.JSONDecodeError, AttributeError):
             return "plan", text
+    if item.get("ask") == "followup":
+        return "model", format_followup(text)
     return None, ""
+
+
+def format_followup(text):
+    try:
+        payload = json.loads(text)
+        question = payload["question"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return text
+    options = payload.get("options") or []
+    return "\n".join([question, "", *(f"- {option}" for option in options)]).strip()
 
 
 def render_export(title, formatted_blocks, empty_message):
