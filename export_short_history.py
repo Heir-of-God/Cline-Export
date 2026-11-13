@@ -8,7 +8,7 @@ def format_timestamp(ts_ms):
     """Converts millisecond timestamp to a readable datetime string."""
     try:
         return datetime.fromtimestamp(ts_ms / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
-    except Exception:
+    except (TypeError, ValueError, OverflowError, OSError):
         return "Unknown Time"
 
 
@@ -29,9 +29,9 @@ def parse_chat_short_to_md(json_path, output_path):
     for item in data:
         say_type = item.get("say")
         ask_type = item.get("ask")
-        ts = item.get("ts", 0)
+        ts = item.get("ts")
         time_str = format_timestamp(ts)
-        text_content = item.get("text", "").strip()
+        text_content = (item.get("text") or "").strip()
 
         if not text_content:
             continue
