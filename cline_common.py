@@ -1,3 +1,4 @@
+import argparse
 import json
 import sys
 from datetime import datetime
@@ -8,6 +9,23 @@ def format_timestamp(ts_ms):
         return datetime.fromtimestamp(ts_ms / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
     except (TypeError, ValueError, OverflowError, OSError):
         return "Unknown Time"
+
+
+def parse_args(description, default_output):
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "input",
+        nargs="?",
+        default="history.json",
+        help="path to a Cline ui_messages.json (default: history.json)",
+    )
+    parser.add_argument(
+        "output",
+        nargs="?",
+        default=default_output,
+        help=f"Markdown file to write (default: {default_output})",
+    )
+    return parser.parse_args()
 
 
 def load_messages(json_path):

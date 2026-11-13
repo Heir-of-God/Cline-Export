@@ -1,6 +1,10 @@
-import sys
-
-from cline_common import classify, format_timestamp, load_messages, render_export
+from cline_common import (
+    classify,
+    format_timestamp,
+    load_messages,
+    parse_args,
+    render_export,
+)
 
 
 def parse_chat_logs_to_md(json_path, output_path):
@@ -46,12 +50,8 @@ def parse_chat_logs_to_md(json_path, output_path):
 
 
 if __name__ == "__main__":
-    input_json = "history.json"
-    output_md = "chat_history_parsed.md"
-
-    if len(sys.argv) > 1:
-        input_json = sys.argv[1]
-    if len(sys.argv) > 2:
-        output_md = sys.argv[2]
-
-    parse_chat_logs_to_md(input_json, output_md)
+    args = parse_args(
+        "Export a Cline chat log to Markdown, including the model's reasoning.",
+        "chat_history_parsed.md",
+    )
+    parse_chat_logs_to_md(args.input, args.output)
