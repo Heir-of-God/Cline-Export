@@ -1,74 +1,27 @@
-import json
-import os
 import sys
-from datetime import datetime
 
-
-def format_timestamp(ts_ms):
-    """Converts millisecond timestamp to a readable datetime string."""
-    try:
-        return datetime.fromtimestamp(ts_ms / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
-    except (TypeError, ValueError, OverflowError, OSError):
-        return "Unknown Time"
+from cline_common import classify, format_timestamp, load_messages, render_export
 
 
 def parse_chat_short_to_md(json_path, output_path):
-    if not os.path.exists(json_path):
-        print(f"Error: Source file '{json_path}' not found.")
-        return
+    blocks = []
 
-    try:
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON: {e}")
-        return
+    for item in load_messages(json_path):
+        role, text = classify(item)
+        time_str = format_timestamp(item.get("ts"))
 
-    formatted_blocks = []
+        if role == "user":
+            blocks.append(f"## 👤 User Prompt\n*{time_str}*\n\n{text}")
+        elif role in ("model", "plan"):
+            blocks.append(f"## 🤖 Model Response\n*{time_str}*\n\n{text}")
 
-    for item in data:
-        say_type = item.get("say")
-        ask_type = item.get("ask")
-        ts = item.get("ts")
-        time_str = format_timestamp(ts)
-        text_content = (item.get("text") or "").strip()
-
-        if not text_content:
-            continue
-
-        if say_type in ("task", "user_feedback"):
-            formatted_blocks.append(
-                f"## 👤 User Prompt\n*{time_str}*\n\n{text_content}"
-            )
-
-        elif ask_type == "plan_mode_respond":
-            try:
-                payload = json.loads(text_content)
-                actual_response = payload.get("response", text_content)
-                formatted_blocks.append(
-                    f"## 🤖 Model Response\n*{time_str}*\n\n{actual_response}"
-                )
-            except Exception:
-                formatted_blocks.append(
-                    f"## 🤖 Model Response\n*{time_str}*\n\n{text_content}"
-                )
-
-        elif say_type == "text":
-            formatted_blocks.append(
-                f"## 🤖 Model Response\n*{time_str}*\n\n{text_content}"
-            )
-
+    markdown = render_export(
+        "📋 Compact Chat History (Prompts & Responses Only)",
+        blocks,
+        "_No conversational text data found in this log._",
+    )
     with open(output_path, "w", encoding="utf-8") as out_f:
-        out_f.write("# 📋 Compact Chat History (Prompts & Responses Only)\n\n")
-        out_f.write(
-            f"*Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n\n"
-        )
-        out_f.write("---\n\n")
-
-        if not formatted_blocks:
-            out_f.write("_No conversational text data found in this log._")
-        else:
-            out_f.write("\n\n---\n\n".join(formatted_blocks))
+        out_f.write(markdown)
 
     print(f"Success! Compact Markdown history exported to: {output_path}")
 
