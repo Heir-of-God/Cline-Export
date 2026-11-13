@@ -24,7 +24,7 @@ def load_messages(json_path):
 
 
 def classify(item):
-    """Returns (role, text) where role is 'user', 'reasoning', 'model', 'plan' or None."""
+    """Returns (role, text) where role is 'user', 'reasoning', 'model' or None."""
     text = (item.get("text") or "").strip()
     if not text:
         return None, ""
@@ -38,9 +38,9 @@ def classify(item):
         return "model", text
     if item.get("ask") == "plan_mode_respond":
         try:
-            return "plan", json.loads(text).get("response", text)
+            return "model", json.loads(text).get("response", text)
         except (json.JSONDecodeError, AttributeError):
-            return "plan", text
+            return "model", text
     if item.get("ask") == "followup":
         return "model", format_followup(text)
     return None, ""

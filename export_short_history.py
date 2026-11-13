@@ -12,7 +12,7 @@ def parse_chat_short_to_md(json_path, output_path):
 
         if role == "user":
             blocks.append(f"## 👤 User Prompt\n*{time_str}*\n\n{text}")
-        elif role in ("model", "plan"):
+        elif role == "model":
             blocks.append(f"## 🤖 Model Response\n*{time_str}*\n\n{text}")
 
     markdown = render_export(

@@ -23,9 +23,6 @@ def parse_chat_logs_to_md(json_path, output_path):
         if role == "user":
             flush_model_block()
             blocks.append(f"## 👤 User Prompt\n*{time_str}*\n\n{text}")
-        elif role == "plan":
-            flush_model_block()
-            blocks.append(f"## 🤖 Model Answering\n*{time_str}*\n\n{text}")
         elif role in ("reasoning", "model"):
             if not model_parts:
                 model_start_time = time_str
